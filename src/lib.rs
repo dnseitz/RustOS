@@ -9,40 +9,61 @@ extern crate multiboot2;
 
 #[macro_use]
 mod vga_buffer;
+mod memory;
+
+use memory::FrameAllocator;
 
 #[no_mangle]
 pub extern fn rust_main(multiboot_information_address: usize) {
-    // ATTENTION: we have a very small stack (64B) and no guard page
-    
     vga_buffer::clear_screen();
-    println!("Hello World{}", "!");
+    println!("Hello, World!");
+    let boot_info = unsafe { multiboot2::load(multiboot_information_address) };
+    let memory_map_tag = boot_info.memory_map_tag().expect("Memory map tag required");
 
-    loop{}
-
-    // Testing global WRITER
-    use core::fmt::Write;
-    let mut writer = vga_buffer::WRITER.lock();
-    writer.write_str("Hello from the global Writer!\n");
-    write!(writer, "Here's some formatted numbers: {} {}", 42, 1.337);
-
-    // Testing manual printing
-    let hello = b"Hello World!";
-    let color_byte = 0x1f; // white foreground, blue background
-
-    let mut hello_colored = [color_byte; 24];
-    for (i, char_byte) in hello.into_iter().enumerate() {
-        hello_colored[i*2] = *char_byte;
+    println!("memory areas:");
+    for area in memory_map_tag.memory_areas() {
+        println!("    start: 0x{:x}, length: 0x{:x}", area.base_addr, area.length);
     }
 
-    // write 'Hello World!' to the center of the VGA text buffer
-    let buffer_ptr = (0xb8000 + 1988) as *mut _;
-    unsafe { *buffer_ptr = hello_colored };
+    let elf_sections_tag = boot_info.elf_sections_tag()
+        .expect("Elf-sections tag required");
 
-    // Testing module printing
-    vga_buffer::print_something();
+    println!("kernel sections:");
+    for section in elf_sections_tag.sections() {
+        println!("    addr: 0x{:x}, size: 0x{:x}, flags: 0x{:x}",
+                 section.addr, section.size, section.flags);
+    }
+
+    let kernel_start = elf_sections_tag.sections().map(|s| s.addr).min().unwrap();
+    let kernel_end = elf_sections_tag.sections().map(|s| s.addr + s.size).max().unwrap();
+    println!("kernel_start: 0x{:x}, kernel_end: 0x{:x}", 
+             kernel_start, kernel_end);
+
+    let multiboot_start = multiboot_information_address;
+    let multiboot_end = multiboot_start + (boot_info.total_size as usize);
+    println!("multiboot_start: 0x{:x}, multiboot_end: 0x{:x}", 
+             multiboot_start, multiboot_end);
+
+    let mut frame_allocator = memory::AreaFrameAllocator::new(
+        kernel_start as usize, kernel_end as usize, multiboot_start,
+        multiboot_end, memory_map_tag.memory_areas());
+
+    for i in 0.. {
+        if let None = frame_allocator.allocate_frame() {
+            println!("allocated {} frames", i);
+            break;
+        }
+    }
+
+    loop{}
 }
 
 
 
 #[lang = "eh_personality"] extern fn eh_personality() {}
-#[lang = "panic_fmt"] extern fn panic_fmt() -> ! {loop{}}
+#[lang = "panic_fmt"] 
+extern fn panic_fmt(fmt: core::fmt::Arguments, file: &str, line: u32) -> ! {
+    println!("\n\nPANIC in {} at line {}:", file, line);
+    println!("    {}", fmt);
+    loop{}
+}

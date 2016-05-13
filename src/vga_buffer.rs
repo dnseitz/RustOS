@@ -123,20 +123,6 @@ impl ::core::fmt::Write for Writer {
     }
 }
 
-pub fn print_something() {
-    use core::fmt::Write;
-    let mut writer = Writer {
-        column_position: 0,
-        color_code: ColorCode::new(Color::LightGray, Color::Black),
-        buffer: unsafe { Unique::new(0xb8000 as *mut _) },
-    };
-
-    writer.write_byte(b'H');
-    writer.write_str("ello, World! ");
-    write!(writer, "Formatted strings, int: {}, float: {}", 42, 1.0/3.0);
-    writeln!(writer, "\nNow we're on a new line!");
-}
-
 pub fn clear_screen() {
     for _ in 0..BUFFER_HEIGHT {
         println!("");
