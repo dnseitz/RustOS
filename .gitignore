@@ -1,3 +1,5 @@
 *.iso
 *.bin
 *.o
+*.swp
+target/*
