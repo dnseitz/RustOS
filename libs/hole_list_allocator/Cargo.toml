@@ -1,7 +1,9 @@
 [package]
 authors = ["dnseitz <dnseitz@gmail.com>"]
-name = "bump_allocator"
+name = "hole_list_allocator"
 version = "0.1.0"
 
 [dependencies]
+linked_list_allocator = "0.2.1"
+once = "0.2.1"
 spin = "0.4.1"

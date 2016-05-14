@@ -5,12 +5,10 @@ mod mapper;
 
 pub use self::entry::*;
 pub use self::mapper::Mapper;
-use core::ptr::Unique;
 use core::ops::{Deref, DerefMut};
 use multiboot2::BootInformation;
 use memory::{PAGE_SIZE, Frame, FrameAllocator};
 use self::temporary_page::TemporaryPage;
-use self::table::{Table, Level4};
 
 const ENTRY_COUNT: usize = 512;
 
@@ -108,7 +106,7 @@ impl InactivePageTable {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Page {
     number: usize,
 }
@@ -119,6 +117,13 @@ impl Page {
                 address >= 0xffff_8000_0000_0000,
                 "invalid address: 0x{:x}", address);
         Page { number: address / PAGE_SIZE }
+    }
+
+    pub fn range_inclusive(start: Page, end: Page) -> PageIter {
+        PageIter {
+            start: start,
+            end: end,
+        }
     }
 
     fn start_address(&self) -> usize {
@@ -142,45 +147,27 @@ impl Page {
     }
 }
 
-pub fn test_paging<A>(allocator: &mut A) where A: FrameAllocator {
-    let mut page_table = unsafe { ActivePageTable::new() };
-    // address 0 is mapped
-    println!("Some = {:?}", page_table.translate(0));
-    // second P1 entry
-    println!("Some = {:?}", page_table.translate(4096));
-    // second P2 entry
-    println!("Some = {:?}", page_table.translate(512 * 4096));
-    // 300th P2 entry
-    println!("Some = {:?}", page_table.translate(300 * 512 * 4096));
-    // second P3 entry
-    println!("None = {:?}", page_table.translate(512 * 512 * 4096));
-    // last mapped byte
-    println!("Some = {:?}", page_table.translate(512 * 512 * 4096 - 1));
+pub struct PageIter {
+    start: Page,
+    end: Page,
+}
 
-    let addr = 42 * 512 * 512 * 4096; // 42nd P3 entry
-    let page = Page::containing_address(addr);
-    let frame = allocator.allocate_frame().expect("no more frames");
-    println!("None = {:?}, map to {:?}",
-             page_table.translate(addr),
-             frame);
-    page_table.map_to(page, frame, EntryFlags::empty(), allocator);
-    println!("Some {:?}", page_table.translate(addr));
-    println!("next free frame: {:?}", allocator.allocate_frame());
+impl Iterator for PageIter {
+    type Item = Page;
 
-    println!("{:#x}", unsafe {
-        *(Page::containing_address(addr).start_address() as *const u64)
-    });
-    
-    page_table.unmap(Page::containing_address(addr), allocator);
-    println!("None = {:?}", page_table.translate(addr));
-    
-    println!("{:#x}", unsafe {
-        *(Page::containing_address(addr).start_address() as *const u64)
-    });
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.start <= self.end {
+            let page = self.start;
+            self.start.number += 1;
+            Some(page)
+        } else {
+            None
+        }
+    }
 }
 
 pub fn remap_the_kernel<A>(allocator: &mut A, boot_info: &BootInformation)
-    where A: FrameAllocator
+    -> ActivePageTable where A: FrameAllocator
 {
     let mut temporary_page = TemporaryPage::new(Page { number: 0xcafebabe },
                                                 allocator);
@@ -195,8 +182,6 @@ pub fn remap_the_kernel<A>(allocator: &mut A, boot_info: &BootInformation)
             .expect("Memory map tag required");
 
         for section in elf_sections_tag.sections() {
-            use self::entry::WRITABLE;
-
             if !section.is_allocated() {
                 // section is not loaded to memory
                 continue;
@@ -238,4 +223,5 @@ pub fn remap_the_kernel<A>(allocator: &mut A, boot_info: &BootInformation)
     active_table.unmap(old_p4_page, allocator);
     println!("guard page at {:#x}", old_p4_page.start_address());
 
+    active_table
 }
