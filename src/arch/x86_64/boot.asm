@@ -23,6 +23,8 @@ start:
 
   call set_up_SSE
 
+  cli
+
   lgdt [gdt64.pointer]
 
   ; update selectors
@@ -30,8 +32,6 @@ start:
   mov ss, ax  ; stack selector
   mov ds, ax  ; data selector
   mov es, ax  ; extra selector
-
-  cli
 
   jmp gdt64.code:long_mode_start
 

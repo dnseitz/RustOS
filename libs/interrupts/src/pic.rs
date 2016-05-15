@@ -35,13 +35,13 @@ impl ChainedPics {
             pics: [
                 Pic {
                     offset: offset1,
-                    command: UnsafePort::new(0x20),
-                    data: UnsafePort::new(0x21),
+                    command: UnsafePort::<u8>::new(0x20),
+                    data: UnsafePort::<u8>::new(0x21),
                 },
                 Pic {
                     offset: offset2,
-                    command: UnsafePort::new(0xa0),
-                    data: UnsafePort::new(0xa1),
+                    command: UnsafePort::<u8>::new(0xa0),
+                    data: UnsafePort::<u8>::new(0xa1),
                 },
             ],
         }
@@ -50,9 +50,6 @@ impl ChainedPics {
     pub unsafe fn initialize(&mut self) {
         let wait_port: Port<u8> = Port::new(0x80);
         let wait = || { wait_port.write(0) };
-
-        let saved_mask1 = self.pics[0].data.read();
-        let saved_mask2 = self.pics[1].data.read();
 
         // Send command: Begin 3 byte initialization sequence
         self.pics[0].command.write(CMD_INIT);
@@ -78,8 +75,8 @@ impl ChainedPics {
         self.pics[1].data.write(MODE_8086);
         wait();
 
-        self.pics[0].data.write(saved_mask1);
-        self.pics[1].data.write(saved_mask2);
+        self.pics[0].data.write(0x0);
+        self.pics[1].data.write(0x0);
     }
 
     pub fn handles_interrupt(&self, interrupt_id: u8) -> bool {
@@ -121,14 +118,14 @@ impl ChainedPics {
 
     /// Returns the contents of the PICs Interrupt Request Register (IRR)
     /// which shows interrupts have been raised but not yet sent to the CPU
-    pub unsafe fn get_irr(&self) -> u16 {
-        self.interrupt_status(PIC_READ_IRR)
+    pub fn get_irr(&self) -> u16 {
+        unsafe { self.interrupt_status(PIC_READ_IRR) }
     }
 
     /// Returns the contents of the PICs In-Service Register (ISR) which
     /// shows us which interrupts are being serviced by the CPU
-    pub unsafe fn get_isr(&self) -> u16 {
-        self.interrupt_status(PIC_READ_ISR)
+    pub fn get_isr(&self) -> u16 {
+        unsafe { self.interrupt_status(PIC_READ_ISR) }
     }
     
     /// Write the ocw3 command word to the PICs command port then read from

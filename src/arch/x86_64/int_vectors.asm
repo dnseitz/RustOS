@@ -76,6 +76,22 @@ isr_nerr 28
 isr_nerr 29
 isr_nerr 30
 isr_nerr 31
+isr_nerr 32
+isr_nerr 33
+isr_nerr 34
+isr_nerr 35
+isr_nerr 36
+isr_nerr 37
+isr_nerr 38
+isr_nerr 39
+isr_nerr 40
+isr_nerr 41
+isr_nerr 42
+isr_nerr 43
+isr_nerr 44
+isr_nerr 45
+isr_nerr 46
+isr_nerr 47
 
 ; This is the entry point to the rust handler that
 ; every service routine jumps to. We need to let the

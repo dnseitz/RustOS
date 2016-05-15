@@ -26,6 +26,7 @@ mod memory;
 
 use alloc::boxed::Box;
 use interrupts::{PICS, setup_idt, Registers};
+use x86::irq::{enable, disable};
 
 #[no_mangle]
 pub extern "C" fn rust_main(multiboot_information_address: usize) {
@@ -59,30 +60,30 @@ pub extern "C" fn rust_main(multiboot_information_address: usize) {
 
     println!("Deallocation worked!");
 
-    unsafe { PICS.lock().initialize(); }
-
-    println!("PICs initialized!");
-
     setup_idt();
     
     println!("IDT setup!");
 
-    println!("Calling INT 2");
-
-    unsafe { int!(2); }
-
-    println!("Returned from INT 2");
-
+    unsafe { enable(); }
+    
     loop{}
 }
 
 #[no_mangle]
 pub extern "C" fn rust_int_handler(registers: usize) {
     let r = unsafe { Registers::load(registers) };
-    println!("    Exception! Int code: {}", r.int_no);
-    if r.int_no == 14 {
-        
+    if r.int_no != 32 {
+        println!("    Exception! Int code: {}", r.int_no);
     }
+    if r.int_no > 31 || r.int_no <= 47 {
+        irq_handler(&r);
+    }
+}
+
+fn irq_handler(registers: &Registers) {
+    // Hanlde different types of irqs here
+
+    unsafe { PICS.lock().notify_end_of_interrupt(registers.int_no as u8); }
 }
 
 fn enable_nxe_bit() {

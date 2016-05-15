@@ -53,6 +53,23 @@ extern {
     fn isr29();
     fn isr30();
     fn isr31();
+    // Below are the IRQs
+    fn isr32();
+    fn isr33();
+    fn isr34();
+    fn isr35();
+    fn isr36();
+    fn isr37();
+    fn isr38();
+    fn isr39();
+    fn isr40();
+    fn isr41();
+    fn isr42();
+    fn isr43();
+    fn isr44();
+    fn isr45();
+    fn isr46();
+    fn isr47();
 }
 
 pub struct IDTable {
@@ -95,6 +112,8 @@ impl Registers {
 }
 
 pub fn setup_idt() {
+    unsafe { PICS.lock().initialize(); }
+
     // Setup the descriptor table pointer
     let addr = unsafe { &IDT as *const IDTable as u64 };
     let tbl_ptr = DescriptorTablePointer {
@@ -200,6 +219,54 @@ pub fn setup_idt() {
     
     ptr = isr31 as *const u8;
     unsafe { IDT.add_gate(31, ptr, 0x08); }
+    
+    ptr = isr32 as *const u8;
+    unsafe { IDT.add_gate(32, ptr, 0x08); }
+    
+    ptr = isr33 as *const u8;
+    unsafe { IDT.add_gate(33, ptr, 0x08); }
+    
+    ptr = isr34 as *const u8;
+    unsafe { IDT.add_gate(34, ptr, 0x08); }
+    
+    ptr = isr35 as *const u8;
+    unsafe { IDT.add_gate(35, ptr, 0x08); }
+    
+    ptr = isr36 as *const u8;
+    unsafe { IDT.add_gate(36, ptr, 0x08); }
+    
+    ptr = isr37 as *const u8;
+    unsafe { IDT.add_gate(37, ptr, 0x08); }
+    
+    ptr = isr38 as *const u8;
+    unsafe { IDT.add_gate(38, ptr, 0x08); }
+    
+    ptr = isr39 as *const u8;
+    unsafe { IDT.add_gate(39, ptr, 0x08); }
+    
+    ptr = isr40 as *const u8;
+    unsafe { IDT.add_gate(40, ptr, 0x08); }
+    
+    ptr = isr41 as *const u8;
+    unsafe { IDT.add_gate(41, ptr, 0x08); }
+    
+    ptr = isr42 as *const u8;
+    unsafe { IDT.add_gate(42, ptr, 0x08); }
+    
+    ptr = isr43 as *const u8;
+    unsafe { IDT.add_gate(43, ptr, 0x08); }
+    
+    ptr = isr44 as *const u8;
+    unsafe { IDT.add_gate(44, ptr, 0x08); }
+    
+    ptr = isr45 as *const u8;
+    unsafe { IDT.add_gate(45, ptr, 0x08); }
+    
+    ptr = isr46 as *const u8;
+    unsafe { IDT.add_gate(46, ptr, 0x08); }
+    
+    ptr = isr47 as *const u8;
+    unsafe { IDT.add_gate(47, ptr, 0x08); }
     
     unsafe { lidt(&tbl_ptr); }
 }
