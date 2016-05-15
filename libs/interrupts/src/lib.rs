@@ -8,8 +8,10 @@ extern crate spin;
 extern crate x86;
 
 mod pic;
+mod pit;
 
 use pic::ChainedPics;
+use pit::Pit;
 use spin::Mutex;
 use core::mem::size_of;
 use x86::dtables::{lidt, DescriptorTablePointer};
@@ -17,6 +19,7 @@ use x86::irq::IdtEntry;
 
 pub static PICS: Mutex<ChainedPics> = Mutex::new(
                                         unsafe { ChainedPics::new(0x20, 0x28) });
+pub static PIT: Mutex<Pit> = Mutex::new(unsafe { Pit::new() });
 
 static mut IDT: IDTable = IDTable::init();
 

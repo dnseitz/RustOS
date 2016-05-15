@@ -25,7 +25,7 @@ mod vga_buffer;
 mod memory;
 
 use alloc::boxed::Box;
-use interrupts::{PICS, setup_idt, Registers};
+use interrupts::{PICS, PIT, setup_idt, Registers};
 use x86::irq::{enable, disable};
 
 #[no_mangle]
@@ -64,6 +64,8 @@ pub extern "C" fn rust_main(multiboot_information_address: usize) {
     
     println!("IDT setup!");
 
+    PIT.lock().set_rate(100);
+
     unsafe { enable(); }
     
     loop{}
@@ -81,9 +83,21 @@ pub extern "C" fn rust_int_handler(registers: usize) {
 }
 
 fn irq_handler(registers: &Registers) {
-    // Hanlde different types of irqs here
+    // Handle different types of irqs here
+    
+    if registers.int_no == 32 {
+        timer_int(registers);
+    }
 
     unsafe { PICS.lock().notify_end_of_interrupt(registers.int_no as u8); }
+}
+
+fn timer_int(registers: &Registers) {
+    let mut pit = PIT.lock();
+    pit.tick();
+    if pit.get_ticks() % pit.get_rate() as u64 == 0 {
+        println!("One second has passed");
+    }
 }
 
 fn enable_nxe_bit() {
