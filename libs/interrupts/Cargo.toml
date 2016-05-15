@@ -1,0 +1,11 @@
+[package]
+authors = ["dnseitz <dnseitz@gmail.com>"]
+name = "interrupts"
+version = "0.1.0"
+
+[dependencies]
+spin = "0.4.1"
+x86 = "0.6.0"
+
+[dependencies.io_controller]
+path = "../io_controller/"

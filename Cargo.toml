@@ -18,6 +18,9 @@ path = "libs/bump_allocator"
 [dependencies.hole_list_allocator]
 path = "libs/hole_list_allocator"
 
+[dependencies.interrupts]
+path = "libs/interrupts"
+
 [dependencies.multiboot2]
 git = "https://github.com/phil-opp/multiboot2-elf64"
 

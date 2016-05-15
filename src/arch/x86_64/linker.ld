@@ -22,6 +22,12 @@ SECTIONS {
     *(.data .data.*)
     . = ALIGN(4K);
   }
+  
+  .got :
+  {
+    *(.got .got.*)
+    . = ALIGN(4K);
+  }
 
   .bss :
   {
@@ -40,4 +46,5 @@ SECTIONS {
     *(.gcc_except_table)
     . = ALIGN(4K);
   }
+
 }

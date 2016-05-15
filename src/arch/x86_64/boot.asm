@@ -1,8 +1,11 @@
 global start
+global idt_ptr
 extern long_mode_start
 
 section .text
 bits 32
+
+
 start:
   mov esp, stack_top
   mov edi, ebx          ; Move Multiboot info pointer to edi
@@ -27,6 +30,8 @@ start:
   mov ss, ax  ; stack selector
   mov ds, ax  ; data selector
   mov es, ax  ; extra selector
+
+  cli
 
   jmp gdt64.code:long_mode_start
 
@@ -191,7 +196,13 @@ stack_bottom:
   resb 4096 * 2
 stack_top:
 
+;idt64:
+;  resq 256 * 2
+
 section .rodata
+;idt_ptr:
+;  dw (256*16)-1
+;  dq idt64
 gdt64:
   dq 0 ; zero entry
 .code: equ $ - gdt64

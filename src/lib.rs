@@ -1,6 +1,7 @@
 #![feature(lang_items)]
 #![feature(const_fn)]
 #![feature(unique)]
+#![feature(asm)]
 #![feature(alloc, collections)]
 #![no_std]
 
@@ -9,6 +10,7 @@ extern crate spin;
 extern crate multiboot2;
 #[macro_use]
 extern crate bitflags;
+#[macro_use]
 extern crate x86;
 extern crate hole_list_allocator;
 extern crate alloc;
@@ -16,12 +18,14 @@ extern crate alloc;
 extern crate collections;
 #[macro_use]
 extern crate once;
+extern crate interrupts;
 
 #[macro_use]
 mod vga_buffer;
 mod memory;
 
 use alloc::boxed::Box;
+use interrupts::{PICS, setup_idt, Registers};
 
 #[no_mangle]
 pub extern "C" fn rust_main(multiboot_information_address: usize) {
@@ -55,7 +59,30 @@ pub extern "C" fn rust_main(multiboot_information_address: usize) {
 
     println!("Deallocation worked!");
 
+    unsafe { PICS.lock().initialize(); }
+
+    println!("PICs initialized!");
+
+    setup_idt();
+    
+    println!("IDT setup!");
+
+    println!("Calling INT 2");
+
+    unsafe { int!(2); }
+
+    println!("Returned from INT 2");
+
     loop{}
+}
+
+#[no_mangle]
+pub extern "C" fn rust_int_handler(registers: usize) {
+    let r = unsafe { Registers::load(registers) };
+    println!("    Exception! Int code: {}", r.int_no);
+    if r.int_no == 14 {
+        
+    }
 }
 
 fn enable_nxe_bit() {
