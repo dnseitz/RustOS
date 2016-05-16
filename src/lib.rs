@@ -27,7 +27,8 @@ mod memory;
 
 use alloc::boxed::Box;
 use interrupts::{PICS, PIT, setup_idt, Registers};
-use io_controller::{KEYBOARD, KBDUS};
+use io_controller::{KEYBOARD, KBDUS, KeyFlags};
+use io_controller::{ALT, CONTROL, SHIFT, CAPSLOCK, NUMLOCK, SCROLLLOCK};
 use x86::irq::{enable, disable};
 
 #[no_mangle]
@@ -106,15 +107,72 @@ fn timer_int(registers: &Registers) {
 }
 
 fn kbd_int(registers: &Registers) {
-    let kbd = KEYBOARD.lock();
+    let convert = |ch| {
+        match ch {
+            b'0' => b')', // '0' -> ')'
+            b'1' => b'!', // '1' -> '!'
+            b'2' => b'@', // '2' -> '@'
+            b'3' => b'#', // '3' -> '#'
+            b'4' => b'$', // '4' -> '$'
+            b'5' => b'%', // '5' -> '%'
+            b'6' => b'^', // '6' -> '^'
+            b'7' => b'&', // '7' -> '&'
+            b'8' => b'*', // '8' -> '*'
+            b'9' => b'(', // '9' -> '('
+            b'-' => b'_',
+            b'=' => b'+',
+            b'[' => b'{',
+            b']' => b'}',
+            b'\\' => b'|',
+            b',' => b'<',
+            b'.' => b'>',
+            b'/' => b'?',
+            b'`' => b'~',
+            b';' => b':',
+            b'\'' => b'"',
+            8 => 8,       // backspace
+            _ => (ch - (b'a' - b'A')),
+        }
+    };
+    let mut kbd = KEYBOARD.lock();
     let scancode = kbd.read_key();
-    if scancode > 88 {
+    if (scancode & 0x7f) > 88 {
         // Undefined character
+        return;
     }
+    let value = KBDUS[(scancode & 0x7f) as usize];
     if (scancode & 0x80) != 0 {
         // The key was released
+        match value {
+            64 => kbd.release(CONTROL),
+            65 | 66 => kbd.release(SHIFT),
+            67 => kbd.release(ALT),
+            _ => {},
+        }
     } else {
-        print!("{}", KBDUS[scancode as usize] as char);
+        match value {
+            64 => kbd.press(CONTROL),
+            65 | 66 => kbd.press(SHIFT),
+            67 => kbd.press(ALT),
+            68 => kbd.toggle(CAPSLOCK),
+            69 => kbd.toggle(NUMLOCK),
+            70 => kbd.toggle(SCROLLLOCK),
+            _  => {
+                if kbd.is_set(CAPSLOCK) {
+                    if kbd.is_set(SHIFT) {
+                        print!("{}", value as char);
+                    } else {
+                        print!("{}", convert(value) as char);
+                    }
+                } else {
+                    if kbd.is_set(SHIFT) {
+                        print!("{}", convert(value) as char);
+                    } else {
+                        print!("{}", value as char);
+                    }
+                }
+            }
+        }
     }
 }
 

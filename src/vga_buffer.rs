@@ -74,6 +74,7 @@ pub struct Writer {
 impl Writer {
     pub fn write_byte(&mut self, byte: u8) {
         match byte {
+            8 => self.backspace(),
             b'\n' => self.new_line(),
             byte => {
                 if self.column_position >= BUFFER_WIDTH {
@@ -88,6 +89,17 @@ impl Writer {
                     color_code: self.color_code,
                 };
                 self.column_position += 1;
+            }
+        }
+    }
+
+    pub fn backspace(&mut self) {
+        let row = BUFFER_HEIGHT - 1;
+        if self.column_position > 0 {
+            self.column_position -= 1;
+            self.buffer().chars[row][self.column_position] = ScreenChar {
+                ascii_character: b' ',
+                color_code: self.color_code,
             }
         }
     }

@@ -3,14 +3,15 @@
 #![no_std]
 
 extern crate spin;
+#[macro_use]
+extern crate bitflags;
 
 mod asmio;
 mod kbd;
 
-pub use kbd::KBDUS;
+pub use kbd::*;
 use core::marker::PhantomData;
 use spin::Mutex;
-use kbd::Keyboard;
 
 pub static KEYBOARD: Mutex<Keyboard> = Mutex::new(Keyboard::new());
 

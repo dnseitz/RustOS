@@ -1,9 +1,21 @@
-
 use Port;
+
+bitflags! {
+    flags KeyFlags: u8 {
+        const ALT =        1 << 0,
+        const CONTROL =    1 << 1,
+        const SHIFT =      1 << 2,
+        const CAPSLOCK =   1 << 3,
+        const NUMLOCK =    1 << 4,
+        const SCROLLLOCK = 1 << 5,
+    }
+}
+
 
 pub struct Keyboard {
     data: Port<u8>,
     control: Port<u8>,
+    status: KeyFlags,
 }
 
 impl Keyboard {
@@ -11,7 +23,24 @@ impl Keyboard {
         Keyboard {
             data: Port::new(0x60),
             control: Port::new(0x64),
+            status: KeyFlags { bits: 0 },
         }
+    }
+
+    pub fn press(&mut self, key_mask: KeyFlags) {
+        self.status.insert(key_mask);
+    }
+
+    pub fn release(&mut self, key_mask: KeyFlags) {
+        self.status.remove(key_mask);
+    }
+
+    pub fn toggle(&mut self, key_mask: KeyFlags) {
+        self.status.toggle(key_mask);
+    }
+
+    pub fn is_set(&self, key_mask: KeyFlags) -> bool {
+        self.status.contains(key_mask)
     }
 
     pub fn read_key(&self) -> u8 {
@@ -49,7 +78,7 @@ pub static KBDUS: [u8; 89] = [
                                 b'[',
                                 b']',
                                 b'\n', // 28 - Enter key
-                                0,     // 29 - Ctrl
+                                64,     // 29 - Ctrl
                                 b'a',
                                 b's',
                                 b'd',
@@ -62,7 +91,7 @@ pub static KBDUS: [u8; 89] = [
                                 b';', // 39
                                 b'\'',
                                 b'`',
-                                0,    // 42 - Left Shift
+                                65,    // 42 - Left Shift
                                 b'\\',
                                 b'z',
                                 b'x',
@@ -74,11 +103,11 @@ pub static KBDUS: [u8; 89] = [
                                 b',',
                                 b'.',
                                 b'/',
-                                0,    // 54 - Right shift
+                                66,    // 54 - Right shift
                                 b'*',
-                                0,    // 56 - Alt
+                                67,    // 56 - Alt
                                 b' ',
-                                0,    // 58 - Caps Lock
+                                68,    // 58 - Caps Lock
                                 0,    // 59 - F1 key...
                                 0,
                                 0,
@@ -89,8 +118,8 @@ pub static KBDUS: [u8; 89] = [
                                 0,
                                 0,
                                 0,    // 68 - ...F10 key
-                                0,    // 69 - Num lock
-                                0,    // 70 - Scroll Lock
+                                69,    // 69 - Num lock
+                                70,    // 70 - Scroll Lock
                                 0,    // 71 - Home key
                                 0,    // 72 - Up Arrow
                                 0,    // 73 - Page Up
