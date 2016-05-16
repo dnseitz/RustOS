@@ -19,6 +19,7 @@ extern crate collections;
 #[macro_use]
 extern crate once;
 extern crate interrupts;
+extern crate io_controller;
 
 #[macro_use]
 mod vga_buffer;
@@ -26,6 +27,7 @@ mod memory;
 
 use alloc::boxed::Box;
 use interrupts::{PICS, PIT, setup_idt, Registers};
+use io_controller::{KEYBOARD, KBDUS};
 use x86::irq::{enable, disable};
 
 #[no_mangle]
@@ -74,7 +76,7 @@ pub extern "C" fn rust_main(multiboot_information_address: usize) {
 #[no_mangle]
 pub extern "C" fn rust_int_handler(registers: usize) {
     let r = unsafe { Registers::load(registers) };
-    if r.int_no != 32 {
+    if r.int_no < 32 {
         println!("    Exception! Int code: {}", r.int_no);
     }
     if r.int_no > 31 || r.int_no <= 47 {
@@ -87,6 +89,9 @@ fn irq_handler(registers: &Registers) {
     
     if registers.int_no == 32 {
         timer_int(registers);
+    } 
+    if registers.int_no == 33 {
+        kbd_int(registers);
     }
 
     unsafe { PICS.lock().notify_end_of_interrupt(registers.int_no as u8); }
@@ -96,7 +101,20 @@ fn timer_int(registers: &Registers) {
     let mut pit = PIT.lock();
     pit.tick();
     if pit.get_ticks() % pit.get_rate() as u64 == 0 {
-        println!("One second has passed");
+        //println!("One second has passed");
+    }
+}
+
+fn kbd_int(registers: &Registers) {
+    let kbd = KEYBOARD.lock();
+    let scancode = kbd.read_key();
+    if scancode > 88 {
+        // Undefined character
+    }
+    if (scancode & 0x80) != 0 {
+        // The key was released
+    } else {
+        print!("{}", KBDUS[scancode as usize] as char);
     }
 }
 

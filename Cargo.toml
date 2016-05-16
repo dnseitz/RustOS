@@ -21,6 +21,9 @@ path = "libs/hole_list_allocator"
 [dependencies.interrupts]
 path = "libs/interrupts"
 
+[dependencies.io_controller]
+path = "libs/io_controller"
+
 [dependencies.multiboot2]
 git = "https://github.com/phil-opp/multiboot2-elf64"
 

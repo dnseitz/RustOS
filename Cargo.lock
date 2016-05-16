@@ -6,6 +6,7 @@ dependencies = [
  "bump_allocator 0.1.0",
  "hole_list_allocator 0.1.0",
  "interrupts 0.1.0",
+ "io_controller 0.1.0",
  "multiboot2 0.1.0 (git+https://github.com/phil-opp/multiboot2-elf64)",
  "once 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rlibc 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",

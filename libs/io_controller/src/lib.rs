@@ -5,13 +5,14 @@
 extern crate spin;
 
 mod asmio;
+mod kbd;
 
+pub use kbd::KBDUS;
 use core::marker::PhantomData;
 use spin::Mutex;
+use kbd::Keyboard;
 
-static KEYBOARD: Mutex<Port<u8>> = Mutex::new(unsafe {
-    Port::new(0x60)
-});
+pub static KEYBOARD: Mutex<Keyboard> = Mutex::new(Keyboard::new());
 
 pub trait InOut {
     unsafe fn read_in(port: u16) -> Self;
@@ -54,7 +55,7 @@ pub struct Port<T: InOut> {
 }
 
 impl<T: InOut> Port<T> {
-    pub const unsafe fn new(port: u16) -> Port<T> {
+    pub const fn new(port: u16) -> Port<T> {
         Port { port: port, phantom: PhantomData }
     }
 
