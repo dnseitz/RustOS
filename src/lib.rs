@@ -27,7 +27,7 @@ mod memory;
 
 use alloc::boxed::Box;
 use interrupts::{PICS, PIT, setup_idt, Registers};
-use io_controller::{KEYBOARD, KBDUS, KeyFlags};
+use io_controller::{KEYBOARD, KBDUS};
 use io_controller::{ALT, CONTROL, SHIFT, CAPSLOCK, NUMLOCK, SCROLLLOCK};
 use x86::irq::{enable, disable};
 
@@ -102,7 +102,7 @@ fn timer_int(registers: &Registers) {
     let mut pit = PIT.lock();
     pit.tick();
     if pit.get_ticks() % pit.get_rate() as u64 == 0 {
-        //println!("One second has passed");
+        println!("One second has passed");
     }
 }
 
