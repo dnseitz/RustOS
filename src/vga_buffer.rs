@@ -1,4 +1,5 @@
 use spin::Mutex;
+use core::fmt;
 
 pub static WRITER: Mutex<Writer> = Mutex::new(Writer {
     column_position: 0,
@@ -127,4 +128,16 @@ pub fn clear_screen() {
     for _ in 0..BUFFER_HEIGHT {
         println!("");
     }
+}
+
+pub unsafe fn print_error(fmt: fmt::Arguments) {
+    use core::fmt::Write;
+
+    let mut writer = Writer {
+        column_position: 0,
+        color_code: ColorCode::new(Color::Red, Color::Black),
+        buffer: Unique::new(0xb8000 as *mut _),
+    };
+    writer.new_line();
+    writer.write_fmt(fmt);
 }
