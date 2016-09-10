@@ -20,6 +20,9 @@ clean:
 run: $(iso)
 	@qemu-system-x86_64 -cdrom $(iso) -s
 
+run-kvm: $(iso)
+	@qemu-system-x86_64 -cdrom $(iso) -enable-kvm -s
+
 debug: $(iso)
 	@qemu-system-x86_64 -cdrom $(iso) -s -S
 

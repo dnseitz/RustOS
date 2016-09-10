@@ -2,6 +2,9 @@
 #![feature(const_fn)]
 #![feature(unique)]
 #![feature(alloc, collections)]
+#![feature(asm)]
+#![feature(naked_functions)]
+#![feature(core_intrinsics)]
 #![no_std]
 
 extern crate rlibc;
@@ -40,6 +43,8 @@ pub extern "C" fn rust_main(multiboot_information_address: usize) {
 
     interrupts::init();
 
+//    divide_by_zero();
+//    unsafe { asm!("ud2") };
     unsafe{ *(0xdeadbeaf as *mut u64) = 42 };
 
     println!("It did not crash!");
@@ -72,4 +77,12 @@ extern fn panic_fmt(fmt: core::fmt::Arguments, file: &str, line: u32) -> ! {
     println!("\n\nPANIC in {} at line {}:", file, line);
     println!("    {}", fmt);
     loop{}
+}
+
+// MARK - Divide by zero
+
+fn divide_by_zero() {
+    unsafe {
+        asm!("mov dx, 0; div dx" ::: "ax", "dx" : "volatile", "intel")
+    }
 }
