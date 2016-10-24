@@ -26,8 +26,11 @@ extern crate bit_field;
 mod vga_buffer;
 mod memory;
 mod interrupts;
+mod io;
 
 use alloc::boxed::Box;
+
+use x86::irq::{enable, disable};
 
 #[no_mangle]
 pub extern "C" fn rust_main(multiboot_information_address: usize) {
@@ -50,6 +53,8 @@ pub extern "C" fn rust_main(multiboot_information_address: usize) {
 //    unsafe { int!(3) };
 
     println!("It did not crash!");
+
+    unsafe { enable(); }
 
     loop{}
 }

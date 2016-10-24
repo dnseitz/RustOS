@@ -1,6 +1,10 @@
 use vga_buffer::print_error;
+use spin::Mutex;
+use io;
+use io::{ALT, CONTROL, SHIFT, CAPSLOCK, NUMLOCK, SCROLLLOCK, KBDUS};
 
 mod idt;
+mod pic;
 
 macro_rules! save_scratch_registers {
     () => {
@@ -80,16 +84,22 @@ macro_rules! handler_with_error_code {
 
 lazy_static! {
     static ref IDT: idt::Idt = {
+        PICS.lock().initialize();
+
         let mut idt = idt::Idt::new();
 
         idt.set_handler(0, handler!(divide_by_zero_handler));
         idt.set_handler(3, handler!(breakpoint_handler));
         idt.set_handler(6, handler!(invalid_opcode_handler));
         idt.set_handler(14, handler_with_error_code!(page_fault_handler));
+        idt.set_handler(32, handler!(timer_handler));
+        idt.set_handler(33, handler!(keyboard_handler));
 
         idt
     };
 }
+
+pub static PICS: Mutex<pic::ChainedPics> = Mutex::new(pic::ChainedPics::new(0x20, 0x28));
 
 #[derive(Debug)]
 #[repr(C)]
@@ -156,4 +166,95 @@ extern "C" fn breakpoint_handler(stack_frame: *const ExceptionStackFrame) {
                                  (*stack_frame).instruction_pointer,
                                  *stack_frame));
     }
+}
+
+extern "C" fn keyboard_handler(stack_frame: *const ExceptionStackFrame) {
+    /*
+    unsafe {
+        print_error(format_args!("KEYBOARD INTERRUPT\n"));
+    }
+    */
+    let convert = |ch| {
+        match ch {
+            b'0' => b')', // '0' -> ')'
+            b'1' => b'!', // '1' -> '!'
+            b'2' => b'@', // '2' -> '@'
+            b'3' => b'#', // '3' -> '#'
+            b'4' => b'$', // '4' -> '$'
+            b'5' => b'%', // '5' -> '%'
+            b'6' => b'^', // '6' -> '^'
+            b'7' => b'&', // '7' -> '&'
+            b'8' => b'*', // '8' -> '*'
+            b'9' => b'(', // '9' -> '('
+            b'-' => b'_',
+            b'=' => b'+',
+            b'[' => b'{',
+            b']' => b'}',
+            b'\\' => b'|',
+            b',' => b'<',
+            b'.' => b'>',
+            b'/' => b'?',
+            b'`' => b'~',
+            b';' => b':',
+            b'\'' => b'"',
+            8 => 8,       // backspace
+            _ => (ch - (b'a' - b'A')),
+        }
+    };
+
+    let mut kbd = io::KEYBOARD.lock();
+    let scancode = kbd.read_key();
+    if (scancode & 0x7f) > 88 {
+        // Undefined character
+        return;
+    }
+    let value = KBDUS[(scancode & 0x7f) as usize];
+    if (scancode & 0x80) != 0 {
+        // The key was released
+        match value {
+            64 => kbd.release(CONTROL),
+            65 | 66 => kbd.release(SHIFT),
+            67 => kbd.release(ALT),
+            _ => {},
+        }
+    }
+    else {
+        match value {
+            64 => kbd.press(CONTROL),
+            65 | 66 => kbd.press(SHIFT),
+            67 => kbd.press(ALT),
+            68 => kbd.toggle(CAPSLOCK),
+            69 => kbd.toggle(NUMLOCK),
+            70 => kbd.toggle(SCROLLLOCK),
+            _ => {
+                if kbd.is_set(CAPSLOCK) {
+                    if kbd.is_set(SHIFT) {
+                        print!("{}", value as char);
+                    }
+                    else {
+                        print!("{}", convert(value) as char);
+                    }
+                }
+                else {
+                    if kbd.is_set(SHIFT) {
+                        print!("{}", convert(value) as char);
+                    }
+                    else {
+                        print!("{}", value as char);
+                    }
+                }
+            }
+        }
+    }
+
+    PICS.lock().notify_end_of_interrupt(33);
+}
+
+extern "C" fn timer_handler(stack_frame: *const ExceptionStackFrame) {
+    /*
+    unsafe {
+        print_error(format_args!("TIMER INTERRUPT\n"));
+    }
+    */
+    PICS.lock().notify_end_of_interrupt(32);
 }
