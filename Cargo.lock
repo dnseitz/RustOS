@@ -6,11 +6,11 @@ dependencies = [
  "bitflags 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "bump_allocator 0.1.0",
  "hole_list_allocator 0.1.0",
- "multiboot2 0.1.0 (git+https://github.com/phil-opp/multiboot2-elf64)",
+ "multiboot2 0.3.0 (git+https://github.com/phil-opp/multiboot2-elf64)",
  "once 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rlibc 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "spin 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "x86 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "x86 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -27,27 +27,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "bump_allocator"
 version = "0.1.0"
 dependencies = [
- "spin 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "spin 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "hole_list_allocator"
 version = "0.1.0"
 dependencies = [
- "linked_list_allocator 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "linked_list_allocator 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "once 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "spin 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "spin 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "linked_list_allocator"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "multiboot2"
-version = "0.1.0"
-source = "git+https://github.com/phil-opp/multiboot2-elf64#3fc616753513354e2d56a58a1b999a4f13e1f98f"
+version = "0.3.0"
+source = "git+https://github.com/phil-opp/multiboot2-elf64#bc7fa6ea98cc3c1e879aa8d0274df2643d9cec70"
 dependencies = [
  "bitflags 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -59,7 +59,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "raw-cpuid"
-version = "2.0.0"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -74,14 +74,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "spin"
-version = "0.4.1"
+version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "x86"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "raw-cpuid 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "raw-cpuid 2.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
+[metadata]
+"checksum bit_field 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "880eb64e34078143242f6305eb053f4265273257daefc0b3e6e552ef999e72dd"
+"checksum bitflags 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8dead7461c1127cf637931a1e50934eb6eee8bff2f74433ac7909e9afcee04a3"
+"checksum linked_list_allocator 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "58bc6078c53efb4976165df37d3b3c7b9eddd7091d2ec2a2062eed524e20052e"
+"checksum multiboot2 0.3.0 (git+https://github.com/phil-opp/multiboot2-elf64)" = "<none>"
+"checksum once 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "1b2849f21cdb9ffbb0d636948f322c12bb17b7f443a28365241c482be65524ee"
+"checksum raw-cpuid 2.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "7bc8e963398e6244e1d51c42dd68394f273d39ed8afc9238b74f56041b23dbd3"
+"checksum rlibc 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)" = "4f725fa0be00ed4a869c61f1adb156b629bb6c8d97f2ee4d0644bba1ce33b04b"
+"checksum spin 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)" = "26a697d0d28d9c7f3c36b21273b4599e63237bbcae98c4eeef4d2cca12f02792"
+"checksum spin 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)" = "f0f7035cd2694c317f8ff90efb00feb9e7268febbf6e9b28a8d16da8eb202493"
+"checksum x86 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)" = "a1f613c5d15f290aabc0550288a554b6fda85ae5aa6e4fffc009915b8c887a1d"

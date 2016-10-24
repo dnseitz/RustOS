@@ -1,7 +1,7 @@
 arch ?= x86_64
 kernel := build/kernel-$(arch).bin
 iso := build/os-$(arch).iso
-target ?= $(arch)-unknown-linux-gnu
+target ?= $(arch)-blog_os
 rust_os := target/$(target)/debug/libdseitz_rust_os.a
 
 linker_script := src/arch/$(arch)/linker.ld
@@ -43,7 +43,7 @@ $(kernel): cargo $(rust_os)  $(assembly_object_files) $(linker_script)
 		$(assembly_object_files) $(rust_os)
 
 cargo:
-	@cargo rustc --target $(target) -- -Z no-landing-pads
+	@xargo build --target $(target)
 
 # compile assembly files
 build/arch/$(arch)/%.o: src/arch/$(arch)/%.asm

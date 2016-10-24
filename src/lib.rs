@@ -12,6 +12,7 @@ extern crate spin;
 extern crate multiboot2;
 #[macro_use]
 extern crate bitflags;
+#[macro_use]
 extern crate x86;
 extern crate hole_list_allocator;
 extern crate alloc;
@@ -46,6 +47,7 @@ pub extern "C" fn rust_main(multiboot_information_address: usize) {
 //    divide_by_zero();
 //    unsafe { asm!("ud2") };
     unsafe{ *(0xdeadbeaf as *mut u64) = 42 };
+//    unsafe { int!(3) };
 
     println!("It did not crash!");
 
